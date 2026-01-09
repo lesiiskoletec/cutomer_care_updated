@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     // ✅ perfectly center for your badge (adjust if needed)
     top: "10%",
-    left: "22%",
+    left: "15%",
   },
 
   pointsLabel: {
