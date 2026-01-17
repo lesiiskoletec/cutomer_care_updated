@@ -1,87 +1,79 @@
-// App.js
-import React, { useEffect } from "react";
+import React from "react";
 import { StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Provider, useDispatch } from "react-redux";
-import store from "./app/store";
+
+import RootLayout from "./Layouts/RootLayout";
+import SecondLayout from "./Layouts/SecondLayout";
 
 import SplashScreen from "./pages/SplashScreen";
-import SignUp from "./pages/SignUp";
-import SignIn from "./pages/SignIn";
-import HomePage from "./pages/Homepage";
-import Rootlayout from "./Layouts/RootLayout";
-import SecondLayout from "./Layouts/SecondLayout";
-import AddComplain from "./pages/AddComplain";
-import DailyReport from "./pages/DailyReport";
-import FullReport from "./pages/FullReport";
-import Verification from "./pages/Verification";
-import { loadUserFromStorage } from "./app/features/authslice";
+import MainSelectgrade from "./pages/MainSelectgrade";
+import Sign from "./pages/Sign";
+import OTP from "./pages/OTP";
+import ViewLesson from "./pages/ViewLesson";
+import Home from "./pages/Home";
+import Live from "./pages/Live";
+import LMS from "./pages/LMS";
+import Result from "./pages/Result";
+import Profile from "./pages/Profile";
+import Lessons from "./pages/Lessions";
+import IndexNumber from "./pages/IndexNumber";
+import Subjects from "./pages/Subject"; // ✅ your file is Subject.js
+import SubjectWithTeachers from "./pages/SubjectWithteacher";
 
 const Stack = createNativeStackNavigator();
 
-const AppInner = () => {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    // 🔹 Try to load stored user session on app start
-    dispatch(loadUserFromStorage());
-  }, [dispatch]);
-
-  return (
-    <NavigationContainer>
-      <StatusBar barStyle="dark-content" backgroundColor="#EBEBEB" />
-      <Rootlayout>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* Screens WITHOUT bottom nav */}
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="SignUp" component={SignUp} />
-          <Stack.Screen name="Verification" component={Verification} />
-          <Stack.Screen name="SignIn" component={SignIn} />
-
-          {/* Screens WITH bottom nav */}
-          <Stack.Screen name="Home">
-            {(props) => (
-              <SecondLayout>
-                <HomePage {...props} />
-              </SecondLayout>
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name="complain">
-            {(props) => (
-              <SecondLayout>
-                {/* 🔥 pass navigation + route into AddComplain */}
-                <AddComplain {...props} />
-              </SecondLayout>
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name="dailyreport">
-            {(props) => (
-              <SecondLayout>
-                <DailyReport {...props} />
-              </SecondLayout>
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name="fullreport">
-            {(props) => (
-              <SecondLayout>
-                <FullReport {...props} />
-              </SecondLayout>
-            )}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </Rootlayout>
-    </NavigationContainer>
-  );
+const withSecondLayout = (ScreenComponent) => {
+  return function WrappedScreen(props) {
+    return (
+      <SecondLayout>
+        <ScreenComponent {...props} />
+      </SecondLayout>
+    );
+  };
 };
+
+const HomeWithLayout = withSecondLayout(Home);
+const LiveWithLayout = withSecondLayout(Live);
+const LMSWithLayout = withSecondLayout(LMS);
+const ResultWithLayout = withSecondLayout(Result);
+const ProfileWithLayout = withSecondLayout(Profile);
+const SubjectsWithLayout = withSecondLayout(Subjects);
+const SubjectWithTeachersWithLayout = withSecondLayout(SubjectWithTeachers); // ✅ ADD
+const IndexNumberWithLayout = withSecondLayout(IndexNumber);
+const LessonsWithLayout = withSecondLayout(Lessons);
+const ViewLessonWithLayout = withSecondLayout(ViewLesson);
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <AppInner />
-    </Provider>
+    <NavigationContainer>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <RootLayout>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+          {/* NO bottom bar */}
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="MainSelectgrade" component={MainSelectgrade} />
+          <Stack.Screen name="Sign" component={Sign} />
+          <Stack.Screen name="OTP" component={OTP} />
+
+          {/* ✅ Bottom bar pages */}
+          <Stack.Screen name="Home" component={HomeWithLayout} />
+          <Stack.Screen name="Live" component={LiveWithLayout} />
+          <Stack.Screen name="LMS" component={LMSWithLayout} />
+          <Stack.Screen name="Result" component={ResultWithLayout} />
+          <Stack.Screen name="Profile" component={ProfileWithLayout} />
+
+          {/* ✅ Subjects flow */}
+          <Stack.Screen name="Subjects" component={SubjectsWithLayout} />
+          <Stack.Screen
+            name="SubjectWithTeachers"
+            component={SubjectWithTeachersWithLayout}
+          />
+          <Stack.Screen name="IndexNumber" component={IndexNumberWithLayout} />
+          <Stack.Screen name="Lessons" component={LessonsWithLayout} />
+          <Stack.Screen name="ViewLesson" component={ViewLessonWithLayout} />
+        </Stack.Navigator>
+      </RootLayout>
+    </NavigationContainer>
   );
 }

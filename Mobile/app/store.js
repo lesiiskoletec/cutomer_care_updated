@@ -6,7 +6,7 @@ import complaintReducer from "./features/complainSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    complaints: complaintReducer, // 👈 used as state.complaints
+   
   },
 });
 

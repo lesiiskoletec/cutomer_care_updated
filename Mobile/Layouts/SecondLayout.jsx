@@ -1,41 +1,36 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import BottomNavgationBar from "../components/BottomNavigationBar";
+import { View, StyleSheet, SafeAreaView } from "react-native";
+import BottomNavigationBar from "../components/BottomNavigationBar";
+import TopBar from "../components/TopBar";
 
-const SecondLayout = ({ children }) => {
-  const navigation = useNavigation();
-
+export default function SecondLayout({ children }) {
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>{children}</View>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <TopBar />
 
-      {/* Bottom navigation ONLY in this layout */}
-      <View style={styles.bottomBarWrapper}>
-        <BottomNavgationBar
-          onHome={() => navigation.navigate("Home")}
-          onDaily={() => navigation.navigate("dailyreport")}
-          onFull={() => navigation.navigate("fullreport")}
-          onAdd={() => navigation.navigate("complain")}
-        />
+        {/* ✅ Screen Content */}
+        <View style={styles.content}>{children}</View>
+
+        {/* ✅ Bottom bar (wrapper is transparent, screen bg shows through) */}
+        <BottomNavigationBar />
       </View>
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#F8FAFC", // ✅ full screen color
+  },
+
   container: {
     flex: 1,
-    backgroundColor: "#EBEBEB",
+    backgroundColor: "#F8FAFC", // ✅ full screen color
   },
+
   content: {
     flex: 1,
   },
-
-  // ⬆️ Lift bottom navigation slightly upward
-  bottomBarWrapper: {
-    marginBottom: 22,   // ✔️ Moved a bit more up from the previous 12px
-  },
 });
-
-export default SecondLayout;
