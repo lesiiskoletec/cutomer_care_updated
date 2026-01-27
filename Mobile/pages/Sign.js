@@ -18,8 +18,11 @@ const BG_INPUT = "#F1F5F9";
 const PLACEHOLDER = "#97A4B8";
 const PRIMARY = "#214294";
 
-export default function Sign({ navigation }) {
+export default function Sign({ navigation, route }) {
   const [mode, setMode] = useState("signup"); // "signup" | "signin"
+  const isSignUp = mode === "signup";
+
+  const level = route?.params?.level || "";
 
   // Signup fields
   const [name, setName] = useState("");
@@ -34,24 +37,13 @@ export default function Sign({ navigation }) {
   const [phoneIn, setPhoneIn] = useState("");
   const [passwordIn, setPasswordIn] = useState("");
 
-  const isSignUp = mode === "signup";
-
   const onContinue = () => {
     if (isSignUp) {
-      // ✅ Signup -> go OTP
-      navigation.navigate("OTP", {
-        phone: phone, // optional pass phone
-        mode: "signup",
-      });
+      const safePhone = phone?.trim() || "0770000000";
+      navigation.navigate("OTP", { phone: safePhone, mode: "signup", level });
       return;
     }
-
-    // ✅ Signin -> (later connect API)
-    console.log("Signin Continue");
-  };
-
-  const onBack = () => {
-    if (navigation?.goBack) navigation.goBack();
+    navigation.replace("MainSelectgrade");
   };
 
   const toggleBtnStyle = useMemo(
@@ -70,95 +62,115 @@ export default function Sign({ navigation }) {
     []
   );
 
+  // ✅ SIGNIN = centered screen (no scroll)
+  if (!isSignUp) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.page}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.centerSignin}>
+          <Image source={lesiiskole_logo} style={styles.logoSmall} resizeMode="contain" />
+          <Text style={styles.welcome}>Welcome</Text>
+
+          {/* Toggle */}
+          <View style={styles.toggleContainer}>
+            <Pressable onPress={() => setMode("signup")} style={toggleBtnStyle(false)}>
+              <Text style={toggleTextStyle(false)}>Sign Up</Text>
+            </Pressable>
+
+            <Pressable onPress={() => setMode("signin")} style={toggleBtnStyle(true)}>
+              <Text style={toggleTextStyle(true)}>Sign In</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.form}>
+            <Field
+              placeholder="Phone Number"
+              value={phoneIn}
+              onChangeText={setPhoneIn}
+              keyboardType="phone-pad"
+            />
+            <Field
+              placeholder="Password"
+              value={passwordIn}
+              onChangeText={setPasswordIn}
+              secureTextEntry
+            />
+
+            <Pressable onPress={() => {}} style={styles.forgotWrap}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </Pressable>
+
+            <Pressable onPress={onContinue} style={styles.gradientBtnOuter}>
+              <LinearGradient
+                colors={["#086DFF", "#5E9FFD", "#7DB1FC", "#62C4F6", "#48D7F0", "#C7F4F8"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.gradientBtn}
+              >
+                <Text style={styles.gradientBtnText}>Continue</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ✅ SIGNUP = scroll (long form)
   return (
     <KeyboardAvoidingView
       style={styles.page}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Image source={lesiiskole_logo} style={styles.logo} resizeMode="contain" />
-
         <Text style={styles.welcome}>Welcome</Text>
 
-        {/* ✅ Toggle container same as input background */}
+        {/* Toggle */}
         <View style={styles.toggleContainer}>
-          <Pressable
-            onPress={() => setMode("signup")}
-            style={toggleBtnStyle(isSignUp)}
-          >
-            <Text style={toggleTextStyle(isSignUp)}>Sign Up</Text>
+          <Pressable onPress={() => setMode("signup")} style={toggleBtnStyle(true)}>
+            <Text style={toggleTextStyle(true)}>Sign Up</Text>
           </Pressable>
 
-          <Pressable
-            onPress={() => setMode("signin")}
-            style={toggleBtnStyle(!isSignUp)}
-          >
-            <Text style={toggleTextStyle(!isSignUp)}>Sign In</Text>
+          <Pressable onPress={() => setMode("signin")} style={toggleBtnStyle(false)}>
+            <Text style={toggleTextStyle(false)}>Sign In</Text>
           </Pressable>
         </View>
 
-        {/* ✅ Forms */}
+        {/* Form */}
         <View style={styles.form}>
-          {isSignUp ? (
-            <>
-              <Field placeholder="Name" value={name} onChangeText={setName} />
-              <Field
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <Field
-                placeholder="Phone Number"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-              <Field placeholder="District" value={district} onChangeText={setDistrict} />
-              <Field placeholder="Town" value={town} onChangeText={setTown} />
-              <Field
-                placeholder="Address"
-                value={address}
-                onChangeText={setAddress}
-                multiline
-                style={{ minHeight: 90, textAlignVertical: "top" }}
-              />
-              <Field
-                placeholder="Password"
-                value={passwordUp}
-                onChangeText={setPasswordUp}
-                secureTextEntry
-              />
-            </>
-          ) : (
-            <>
-              <Field
-                placeholder="Phone Number"
-                value={phoneIn}
-                onChangeText={setPhoneIn}
-                keyboardType="phone-pad"
-              />
-              <Field
-                placeholder="Password"
-                value={passwordIn}
-                onChangeText={setPasswordIn}
-                secureTextEntry
-              />
+          <Field placeholder="Name" value={name} onChangeText={setName} />
+          <Field
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <Field
+            placeholder="Phone Number"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+          <Field placeholder="District" value={district} onChangeText={setDistrict} />
+          <Field placeholder="Town" value={town} onChangeText={setTown} />
+          <Field
+            placeholder="Address"
+            value={address}
+            onChangeText={setAddress}
+            multiline
+            style={{ minHeight: 90, textAlignVertical: "top", paddingTop: 12 }}
+          />
+          <Field
+            placeholder="Password"
+            value={passwordUp}
+            onChangeText={setPasswordUp}
+            secureTextEntry
+          />
 
-              <Pressable
-                onPress={() => console.log("Forgot password")}
-                style={styles.forgotWrap}
-              >
-                <Text style={styles.forgotText}>Forgot password?</Text>
-              </Pressable>
-            </>
-          )}
-
-          {/* ✅ Gradient Continue Button */}
           <Pressable onPress={onContinue} style={styles.gradientBtnOuter}>
             <LinearGradient
               colors={["#086DFF", "#5E9FFD", "#7DB1FC", "#62C4F6", "#48D7F0", "#C7F4F8"]}
@@ -168,11 +180,6 @@ export default function Sign({ navigation }) {
             >
               <Text style={styles.gradientBtnText}>Continue</Text>
             </LinearGradient>
-          </Pressable>
-
-          {/* Back button */}
-          <Pressable onPress={onBack} style={styles.secondaryBtn}>
-            <Text style={styles.secondaryBtnText}>Back</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -206,29 +213,35 @@ function Field({
 }
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
+  page: { flex: 1, backgroundColor: "#FFFFFF" },
 
   container: {
     paddingHorizontal: 18,
-    paddingTop: 28,
+    paddingTop: 18,
     paddingBottom: 28,
     alignItems: "center",
   },
 
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 10,
+  // ✅ Signup logo
+  logo: { width: 140, height: 140, marginBottom: 4 },
+
+  // ✅ Signin logo smaller
+  logoSmall: { width: 120, height: 120, marginBottom: 20 },
+
+  // ✅ Signin Center Wrapper
+  centerSignin: {
+    flex: 1,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   welcome: {
     fontSize: 26,
     fontWeight: "700",
     color: PRIMARY,
-    marginBottom: 14,
+    marginBottom: 12,
+    marginTop: -25,
   },
 
   toggleContainer: {
@@ -250,32 +263,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  toggleBtnActive: { backgroundColor: "#FFFFFF" },
+  toggleBtnInactive: { backgroundColor: "transparent" },
 
-  toggleBtnActive: {
-    backgroundColor: "#FFFFFF",
-  },
+  toggleText: { fontSize: 14, fontWeight: "500" },
+  toggleTextActive: { color: PRIMARY },
+  toggleTextInactive: { color: "#64748B" },
 
-  toggleBtnInactive: {
-    backgroundColor: "transparent",
-  },
-
-  toggleText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  toggleTextActive: {
-    color: PRIMARY,
-  },
-
-  toggleTextInactive: {
-    color: "#64748B",
-  },
-
-  form: {
-    width: "100%",
-    gap: 10,
-  },
+  form: { width: "100%", gap: 10 },
 
   input: {
     width: "100%",
@@ -288,17 +283,8 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
 
-  forgotWrap: {
-    alignSelf: "flex-end",
-    marginTop: 2,
-    marginBottom: 6,
-  },
-
-  forgotText: {
-    color: PRIMARY,
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  forgotWrap: { alignSelf: "flex-end", marginTop: 2, marginBottom: 6 },
+  forgotText: { color: PRIMARY, fontSize: 12, fontWeight: "700" },
 
   gradientBtnOuter: {
     width: "100%",
@@ -306,34 +292,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginTop: 6,
   },
-
   gradientBtn: {
     height: 50,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 16,
   },
-
-  gradientBtnText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-
-  secondaryBtn: {
-    width: "100%",
-    height: 50,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#D8DEE8",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  secondaryBtnText: {
-    color: PRIMARY,
-    fontSize: 15,
-    fontWeight: "500",
-  },
+  gradientBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "900" },
 });

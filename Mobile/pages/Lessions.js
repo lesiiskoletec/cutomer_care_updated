@@ -1,8 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useFonts } from "expo-font";
 
 export default function Lessions({ route }) {
+  const [fontsLoaded] = useFonts({
+    FMEmanee: require("../assets/fonts/FMEmanee x.ttf"),
+  });
+
   const navigation = useNavigation();
 
   // (optional: coming from IndexNumber page)
@@ -11,14 +16,13 @@ export default function Lessions({ route }) {
   const subject = route?.params?.subject || "";
   const teacher = route?.params?.teacher || "";
 
-  // ✅ Demo lesson data (later you can load from API)
+  // ✅ Demo lesson data
   const lesson = {
     lessonNo: 1,
-    title: "chakkre",
+    title: "uQ,sl .‚; l¾u", // Sinhala title
     date: "2025.8.12",
     time: "10.20 a.m",
-    description:
-      "fdv c cd sb rrfhb erfhfd hrhr hj\ngft gh jgt dtjg gdj gj ghjk u gfkyk kyud k sdrtk trsk",
+    description: "fuu tAllh hgf;a j<dl=¿ mfya ixl,amh hgf;a f,aisfhka myiqfjka  uQ,sl .‚; l¾u W.ksuq'  ",
     youtubeUrl: "https://youtu.be/30cffBrABao?si=a-IlPYIdH09g2XZa",
   };
 
@@ -31,7 +35,6 @@ export default function Lessions({ route }) {
       description: lesson.description,
       youtubeUrl: lesson.youtubeUrl,
 
-      // (optional pass-through)
       indexNumber,
       grade,
       subject,
@@ -39,20 +42,33 @@ export default function Lessions({ route }) {
     });
   };
 
+  // ✅ Prevent render before font load
+  if (!fontsLoaded) return null;
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      {/* ===== Lesson Card ===== */}
       <View style={styles.card}>
         <Text style={styles.lessonNo}>Lesson {lesson.lessonNo}</Text>
 
-        <Text style={styles.title}>Title : {lesson.title}</Text>
+        {/* ✅ Sinhala TITLE using FMEmanee (ONE LINE ONLY) */}
+        <Text
+          style={styles.titleFm}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {lesson.title}
+        </Text>
 
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>Date : {lesson.date}</Text>
           <Text style={styles.metaText}>Time : {lesson.time}</Text>
         </View>
 
-        <Text style={styles.desc}>description: {lesson.description}</Text>
+        {/* ✅ Sinhala DESCRIPTION using FMEmanee */}
+        <View style={styles.descWrap}>
+          <Text style={styles.descLabel}>Description :</Text>
+          <Text style={styles.descFm}>{lesson.description}</Text>
+        </View>
 
         <View style={styles.bottomRow}>
           <Pressable style={styles.watchBtn} onPress={onWatchNow}>
@@ -82,23 +98,33 @@ const styles = StyleSheet.create({
 
   lessonNo: {
     textAlign: "center",
-    fontSize: 14,
+    fontSize: 19,
     fontWeight: "900",
     color: "#1F5EEB",
-    marginBottom: 10,
+    marginBottom: 8,
   },
 
-  title: {
-    fontSize: 16,
-    fontWeight: "900",
+  titleLabel: {
+    fontSize: 13,
+    fontWeight: "800",
     color: "#0F172A",
-    marginBottom: 10,
+    marginBottom: 2,
+  },
+
+  /* ✅ Sinhala title (one line) */
+  titleFm: {
+    fontFamily: "FMEmanee",
+    fontSize: 17,
+    color: "#0F172A",
+    marginBottom: 8,
+    lineHeight: 20,
+    flexShrink: 1, // ✅ helps prevent wrapping
   },
 
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 6,
   },
 
   metaText: {
@@ -107,15 +133,27 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
 
-  desc: {
+  descWrap: {
+    marginTop: 2,
+  },
+
+  descLabel: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 2,
+  },
+
+  /* ✅ Sinhala description */
+  descFm: {
+    fontFamily: "FMEmanee",
+    fontSize: 15,
     color: "#64748B",
-    lineHeight: 20,
+    lineHeight: 18,
   },
 
   bottomRow: {
-    marginTop: 14,
+    marginTop: 10,
     flexDirection: "row",
     justifyContent: "flex-end",
   },

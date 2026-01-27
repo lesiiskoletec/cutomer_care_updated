@@ -16,7 +16,6 @@ export default function IndexNumber({ route }) {
       return;
     }
 
-    // ✅ Navigate to Lessons page
     navigation.navigate("Lessons", {
       indexNumber,
       grade,
@@ -49,15 +48,15 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-    justifyContent: "center",
     paddingHorizontal: 24,
+    paddingTop: 220,          // ✅ moves content UP neatly
   },
 
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#1F5EEB",
-    marginBottom: 16,
+    marginBottom: 24,
     textAlign: "center",
   },
 
@@ -76,13 +75,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
 
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
   button: {
     width: "100%",
     backgroundColor: "#1F5EEB",
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderRadius: 14,
     alignItems: "center",
 

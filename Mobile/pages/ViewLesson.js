@@ -7,6 +7,8 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { useFonts } from "expo-font";
+
 import CrossWebView from "../components/CrossWebView";
 import YoutubePlayerBox from "../components/YoutubePlayerBox";
 
@@ -28,51 +30,55 @@ function getYouTubeId(url = "") {
 }
 
 export default function ReviewComponent({ route }) {
-  // ✅ pass these from navigation: youtubeUrl, description
-  const youtubeUrl =
-    route?.params?.youtubeUrl ?? "https://youtu.be/30cffBrABao";
+  const [fontsLoaded] = useFonts({
+    FMEmanee: require("../assets/fonts/FMEmanee x.ttf"),
+  });
+
+  const title = route?.params?.title ?? "uQ,sl .‚; l¾u";
+  const youtubeUrl = route?.params?.youtubeUrl ?? "https://youtu.be/30cffBrABao";
 
   const description =
     route?.params?.description ??
-    `f,ais biafldaf,a  hkq orejkaf.a wOHdmkh myiq" kùk iy úYajdiodhl f,i f.khkak ks¾udKh l<  wOHdmk fhÿuls'
-fuu fhÿu YsIHhkag iy foudmshkag tlu fõÈldjla ;=<ska Wiia .=Kd;aul wOHdmk w;aoelSula ,nd§u wruqKq lr.ksñka ixj¾Okh lr we;'`;
+    `f,ais biafldaf,a  hkq orejkaf.a wOHdmkh myiq" kùk iy úYajdiodhl f,i f.khkak ks¾udKh l<  wOHdmk fhÿuls'`;
 
   const videoId = useMemo(() => getYouTubeId(youtubeUrl), [youtubeUrl]);
   const playerHeight = Math.round((width - 32) * 0.56);
 
-  // ✅ WEB HTML player (same method you used)
   const playerHtml = useMemo(() => {
     if (!videoId) return "";
 
     const src =
       `https://www.youtube-nocookie.com/embed/${videoId}` +
-      `?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&fs=1&controls=1`;
+      `?playsinline=1&rel=0&modestbranding=1&controls=1`;
 
     return `
       <!DOCTYPE html>
       <html>
         <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1"/>
           <style>
-            html, body { margin:0; padding:0; width:100%; height:100%; background:#0B1220; overflow:hidden; }
-            iframe { width:100%; height:100%; border:0; display:block; background:#0B1220; }
+            html, body { margin:0; padding:0; background:#0B1220; }
+            iframe { width:100%; height:100%; border:0; }
           </style>
         </head>
         <body>
-          <iframe
-            src="${src}"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowfullscreen
-          ></iframe>
+          <iframe src="${src}" allowfullscreen></iframe>
         </body>
       </html>
     `;
   }, [videoId]);
 
+  if (!fontsLoaded) return null;
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        {/* ✅ YouTube Video FIRST */}
+        {/* ✅ TITLE (CENTERED) */}
+        <Text style={styles.titleText} numberOfLines={1}>
+          {title}
+        </Text>
+
+        {/* ✅ VIDEO */}
         <View style={styles.playerCard}>
           <View style={[styles.playerBox, { height: playerHeight }]}>
             {!videoId ? (
@@ -87,9 +93,8 @@ fuu fhÿu YsIHhkag iy foudmshkag tlu fõÈldjla ;=<ska Wiia .=Kd;aul wOHdmk w;ao
           </View>
         </View>
 
-        {/* ✅ Description BELOW */}
-        <Text style={styles.descTitle}>Description :</Text>
-        <Text style={styles.desc}>{description}</Text>
+        {/* ✅ DESCRIPTION (LEFT + GRAY) */}
+        <Text style={styles.descText}>{description}</Text>
       </ScrollView>
     </View>
   );
@@ -99,6 +104,17 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#F8FAFC" },
   content: { padding: 16, paddingBottom: 40 },
 
+  /* ✅ Title */
+  titleText: {
+    fontFamily: "FMEmanee",
+    fontSize: 18,
+    color: "#0F172A",
+    textAlign: "center",
+    marginBottom: 10,
+    lineHeight: 22,
+  },
+
+  /* ✅ Video */
   playerCard: { borderRadius: 18, marginBottom: 14 },
   playerBox: {
     width: "100%",
@@ -106,23 +122,25 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#0B1220",
   },
-  webview: { width: "100%", height: "100%", backgroundColor: "transparent" },
+  webview: { width: "100%", height: "100%" },
 
-  playerFallback: { flex: 1, alignItems: "center", justifyContent: "center" },
-  fallbackText: { color: "#FFFFFF", fontWeight: "800" },
-
-  descTitle: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: "#0F172A",
-    marginBottom: 6,
-    fontFamily: "FMEmanee", // ✅ Title font
+  playerFallback: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fallbackText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
   },
 
-  desc: {
-    fontSize: 14,
-    color: "#334155",
+  /* ✅ Description (LEFT + GRAY) */
+  descText: {
+    fontFamily: "FMEmanee",
+    fontSize: 15,
+    color: "#6B7280", // ✅ gray
+    textAlign: "left", // ✅ left
     lineHeight: 22,
-    fontFamily: "FMEmanee", // ✅ Description font
+    marginTop: 6,
   },
 });

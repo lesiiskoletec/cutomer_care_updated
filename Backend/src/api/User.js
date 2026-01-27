@@ -2,30 +2,24 @@ import express from "express";
 import {
   createUser,
   getAllUsers,
-  getAllAgents,
   getUserById,
   updateUser,
-  deleteUser,
-} from "../application/User.js";
+  deleteUserById,
+  approveTeacher,
+} from "../application/user.js";
 
-const Userrouter = express.Router();
+import { authenticate } from "../api/middlewares/authentication.js";
+import { authorize } from "../api/middlewares/authrization.js";
 
-// POST /api/user
-Userrouter.post("/", createUser);
+const router = express.Router();
 
-// GET /api/user
-Userrouter.get("/", getAllUsers);
+router.post("/create", authenticate, authorize(["admin"]), createUser);
+router.put("/:id", authenticate, authorize(["admin"]), updateUser);
+router.delete("/:id", authenticate, authorize(["admin"]), deleteUserById);
 
-// GET /api/user/agents
-Userrouter.get("/agents", getAllAgents);
+router.patch("/:id/approve-teacher", authenticate, authorize(["admin"]), approveTeacher);
 
-// GET /api/user/:id
-Userrouter.get("/:id", getUserById);
+router.get("/", authenticate, authorize(["admin"]), getAllUsers);
+router.get("/:id", authenticate, authorize(["admin"]), getUserById);
 
-// PUT /api/user/:id
-Userrouter.put("/:id", updateUser);
-
-// DELETE /api/user/:id
-Userrouter.delete("/:id", deleteUser);
-
-export default Userrouter;
+export default router;

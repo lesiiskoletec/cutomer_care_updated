@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -15,8 +14,19 @@ const BG_INPUT = "#F1F5F9";
 const PLACEHOLDER = "#97A4B8";
 const PRIMARY = "#214294";
 
+const maskPhone = (phone) => {
+  const p = String(phone || "").trim();
+  if (!p) return "07xxxxx";
+  // keep first 2 chars like "07" then mask rest
+  const first2 = p.slice(0, 2) || "07";
+  return `${first2}xxxxx`;
+};
+
 export default function OTP({ navigation, route }) {
   const phone = route?.params?.phone || "";
+  const masked = useMemo(() => maskPhone(phone), [phone]);
+
+  // boxes only (UI)
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputsRef = useRef([]);
 
@@ -44,19 +54,9 @@ export default function OTP({ navigation, route }) {
     }
   };
 
+  // ✅ NO VALIDATION: always navigate
   const onVerify = () => {
-    console.log("VERIFY CLICKED ✅"); // <--- confirm button press
-
-    const code = otp.join("");
-    console.log("OTP CODE:", code);
-
-    if (code.length !== 6) {
-      Alert.alert("OTP Error", "Please enter the full 6-digit OTP.");
-      return;
-    }
-
-    // ✅ navigate to Home (most reliable)
-    navigation.replace("Home");
+    navigation.replace("MainSelectgrade");
   };
 
   return (
@@ -66,10 +66,13 @@ export default function OTP({ navigation, route }) {
     >
       <View style={styles.container}>
         <Text style={styles.title}>OTP Verification</Text>
+
+        {/* ✅ REPLACED TEXT */}
         <Text style={styles.subTitle}>
-          Enter the 6-digit code we sent{phone ? ` to ${phone}` : ""}.
+          Enter the 6 digit code we sent to {masked}. Check your WhatsApp
         </Text>
 
+        {/* OTP Boxes (UI only) */}
         <View style={styles.otpRow}>
           {otp.map((digit, idx) => (
             <TextInput
@@ -104,10 +107,28 @@ export default function OTP({ navigation, route }) {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: "#FFFFFF" },
-  container: { flex: 1, paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
+  container: {
+    flex: 1,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   title: { fontSize: 22, fontWeight: "800", color: PRIMARY },
-  subTitle: { marginTop: 8, fontSize: 12, fontWeight: "600", color: "#64748B", textAlign: "center", marginBottom: 18 },
-  otpRow: { flexDirection: "row", justifyContent: "center", gap: 10, marginBottom: 18 },
+  subTitle: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748B",
+    textAlign: "center",
+    marginBottom: 18,
+    lineHeight: 18,
+  },
+  otpRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 18,
+  },
   otpBox: {
     width: 44,
     height: 50,
@@ -122,7 +143,17 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     paddingVertical: 0,
   },
-  gradientBtnOuter: { width: "100%", borderRadius: 16, overflow: "hidden", marginTop: 6 },
-  gradientBtn: { height: 50, alignItems: "center", justifyContent: "center", borderRadius: 16 },
+  gradientBtnOuter: {
+    width: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+    marginTop: 6,
+  },
+  gradientBtn: {
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+  },
   gradientBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "900" },
 });

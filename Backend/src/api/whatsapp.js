@@ -1,93 +1,91 @@
 // src/api/whatsapp.js
-import fetch from "node-fetch";
+import axios from "axios";
 
-/** Normalize Sri Lankan mobile numbers to 94XXXXXXXXX (digits only). */
+/** Normalize Sri Lankan numbers to 94XXXXXXXXX (digits only). */
 function normalizeSLMobile(input) {
   if (!input) return "";
-  let num = String(input).replace(/\D+/g, ""); // keep only digits
 
-  // 07XXXXXXXX -> 94XXXXXXXXX
+  // keep only digits
+  let num = String(input).replace(/\D+/g, "");
+
+  // 0XXXXXXXXX -> 94XXXXXXXXX
   if (num.startsWith("0")) num = "94" + num.slice(1);
 
-  // 7XXXXXXXX  -> 947XXXXXXXX (fallback)
+  // 7XXXXXXXX -> 947XXXXXXXX (fallback)
   if (!num.startsWith("94")) num = "94" + num;
 
   return num;
 }
 
 /**
- * Send a WhatsApp text via ChatBizz API.
+ * ChatBizz WhatsApp text sender
  *
- * Requires .env:
- *   WAPP_INSTANCE=xxxx
- *   WAPP_TOKEN=xxxx
+ * .env:
+ *  WAPP_INSTANCE=xxxx
+ *  WAPP_TOKEN=xxxx
  *
- * Docs (pattern):
- *   POST https://app.chatbizz.cc/api/send
- *   {
- *     "number": "94XXXXXXXXX",
- *     "type": "text",
- *     "message": "Your message",
- *     "instance_id": "WAPP_INSTANCE",
- *     "access_token": "WAPP_TOKEN"
- *   }
+ * API:
+ *  POST https://app.chatbizz.cc/api/send
+ *  {
+ *    number: "94XXXXXXXXX",
+ *    type: "text",
+ *    message: "Hello",
+ *    instance_id: "...",
+ *    access_token: "..."
+ *  }
  */
-export async function sendWhatsApp(to, body) {
+export const sendWhatsApp = async (to, message) => {
   if (!to) throw new Error("Recipient number required");
-  if (!body) throw new Error("Message body required");
+  if (!message) throw new Error("Message body required");
 
   const INSTANCE = process.env.WAPP_INSTANCE;
   const TOKEN = process.env.WAPP_TOKEN;
-  const num = normalizeSLMobile(to);
 
-  // ✅ Dev fallback: if env is not set, just log instead of calling API
+  const number = normalizeSLMobile(to);
+
+  // ✅ If env missing, just log (so signup doesn't crash in dev)
   if (!INSTANCE || !TOKEN) {
     console.log("==========================================");
-    console.log("[DEV] WhatsApp (ChatBizz) SIMULATED SEND");
-    console.log("Number  :", num);
-    console.log("Message :", body);
-    console.log("[DEV] Missing WAPP_INSTANCE or WAPP_TOKEN in .env");
+    console.log("[DEV] ChatBizz SIMULATED SEND (env missing)");
+    console.log("Number  :", number);
+    console.log("Message :", message);
     console.log("==========================================");
-    return { ok: true, dev: true, number: num, body };
+    return { ok: true, dev: true, number, message };
   }
 
   const url = "https://app.chatbizz.cc/api/send";
 
   const payload = {
-    number: num,
-    type: "text",
-    message: body,
+    number,              // ✅ REQUIRED (digits only)
+    type: "text",        // ✅ REQUIRED
+    message,             // ✅ REQUIRED
     instance_id: INSTANCE,
     access_token: TOKEN,
   };
 
   try {
-    const res = await fetch(url, {
-      method: "POST",
+    const resp = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      timeout: 15000,
     });
 
-    const txt = await res.text();
-
+    // optional logs
     console.log("==========================================");
-    console.log("[ChatBizz] Request Payload:", payload);
-    console.log(`[ChatBizz] Response (${res.status}):`, txt);
+    console.log("[ChatBizz] Payload:", payload);
+    console.log("[ChatBizz] Response:", resp.data);
     console.log("==========================================");
 
-    if (!res.ok) {
-      throw new Error(`ChatBizz error ${res.status}: ${txt}`);
-    }
-
-    // Try to parse JSON, but it's okay if it's plain text
-    try {
-      const json = JSON.parse(txt);
-      return { ok: true, response: json };
-    } catch {
-      return { ok: true, response: txt };
-    }
+    return { ok: true, response: resp.data };
   } catch (err) {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    console.error("==========================================");
     console.error("[ChatBizz] SEND ERROR:", err.message);
+    if (status) console.error("[ChatBizz] Status:", status);
+    if (data) console.error("[ChatBizz] Response:", data);
+    console.error("==========================================");
+
     throw err;
   }
-}
+};

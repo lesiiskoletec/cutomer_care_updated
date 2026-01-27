@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Svg, { Path } from "react-native-svg";
+
+import { useUser } from "../context/UserContext";
 
 /* ✅ Ribbon with centered number */
 function RibbonV({ color = "#F97316", number = "01" }) {
@@ -21,7 +23,6 @@ function RibbonV({ color = "#F97316", number = "01" }) {
         />
       </Svg>
 
-      {/* ✅ Number centered (no padding / no free space) */}
       <View pointerEvents="none" style={styles.ribbonNumberCenter}>
         <Text style={styles.ribbonNumber}>{number}</Text>
       </View>
@@ -31,44 +32,100 @@ function RibbonV({ color = "#F97316", number = "01" }) {
 
 export default function LMS() {
   const navigation = useNavigation();
+  const { user } = useUser();
 
-  const grades = [
-    { label: "Grade 1", color: "#F97316" },
-    { label: "Grade 2", color: "#22C55E" },
-    { label: "Grade 3", color: "#3B82F6" },
-    { label: "Grade 4", color: "#A855F7" },
-    { label: "Grade 5", color: "#EF4444" },
-    { label: "Grade 6", color: "#14B8A6" },
-    { label: "Grade 7", color: "#EAB308" },
-    { label: "Grade 8", color: "#0EA5E9" },
-    { label: "Grade 9", color: "#F43F5E" },
-    { label: "Grade 10", color: "#6366F1" },
-    { label: "Grade 11", color: "#10B981" },
-    { label: "Grade 12", color: "#FB923C" },
-  ];
+  const gradeLabel = user?.grade; // e.g. "Grade 1"
+  const level = user?.level; // "primary" | "ol" | "al"
+
+  // ✅ LMS not allowed for AL
+  if (level === "al") {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.centerTitle}>LMS Not Available</Text>
+        <Text style={styles.centerDesc}>LMS is available for Primary and O/L only.</Text>
+      </View>
+    );
+  }
+
+  // ✅ If grade not selected yet
+  if (!gradeLabel) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.centerTitle}>No Grade Selected</Text>
+        <Text style={styles.centerDesc}>Please select your grade first.</Text>
+
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => navigation.replace("MainSelectgrade")}
+        >
+          <Text style={styles.backBtnText}>Go to Grade Selection</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // ✅ get grade number (1..11)
+  const gradeNumber = useMemo(() => {
+    const match = gradeLabel.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 1;
+  }, [gradeLabel]);
+
+  // ✅ Grade number -> words
+  const gradeWord = useMemo(() => {
+    const words = {
+      1: "One",
+      2: "Two",
+      3: "Three",
+      4: "Four",
+      5: "Five",
+      6: "Six",
+      7: "Seven",
+      8: "Eight",
+      9: "Nine",
+      10: "Ten",
+      11: "Eleven",
+    };
+    return words[gradeNumber] || String(gradeNumber);
+  }, [gradeNumber]);
+
+  const fullGradeText = `Grade ${gradeWord}`;
+
+  // ✅ color map
+  const gradeColor = useMemo(() => {
+    const colorMap = {
+      1: "#F97316",
+      2: "#22C55E",
+      3: "#3B82F6",
+      4: "#A855F7",
+      5: "#EF4444",
+      6: "#14B8A6",
+      7: "#EAB308",
+      8: "#0EA5E9",
+      9: "#F43F5E",
+      10: "#6366F1",
+      11: "#10B981",
+    };
+    return colorMap[gradeNumber] || "#3B82F6";
+  }, [gradeNumber]);
+
+  const numberText = String(gradeNumber).padStart(2, "0");
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.grid}>
-        {grades.map((g, index) => {
-          const num = String(index + 1).padStart(2, "0"); // ✅ 01..12
+      <Pressable
+        style={styles.fullCard}
+        onPress={() => navigation.navigate("Subjects", { grade: gradeLabel })}
+      >
+        {/* ✅ Ribbon top-left */}
+        <View style={styles.ribbonCorner}>
+          <RibbonV color={gradeColor} number={numberText} />
+        </View>
 
-          return (
-            <Pressable
-              key={g.label}
-              style={styles.card}
-              onPress={() => navigation.navigate("Subjects", { grade: g.label })}
-            >
-              {/* ✅ Ribbon locked to top-left */}
-              <View style={styles.ribbonCorner}>
-                <RibbonV color={g.color} number={num} />
-              </View>
-
-              <Text style={styles.cardText}>{g.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        {/* ✅ PERFECT CARD CENTER (absolute) */}
+        <View pointerEvents="none" style={styles.absoluteCenter}>
+          <Text style={styles.cardText}>{fullGradeText}</Text>
+        </View>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -82,18 +139,11 @@ const styles = StyleSheet.create({
     paddingBottom: 140,
   },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  card: {
-    width: "48%",
-    height: 130,
+  fullCard: {
+    width: "100%",
+    minHeight: 90,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    marginBottom: 12,
+    borderRadius: 18,
     overflow: "hidden",
 
     elevation: 5,
@@ -102,23 +152,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
 
-    alignItems: "center",
-    justifyContent: "center",
+    position: "relative", // ✅ needed for absolute center
   },
 
   ribbonCorner: {
     position: "absolute",
     top: 0,
     left: 0,
+    zIndex: 5,
   },
 
-  /* ✅ Ribbon container */
+  // ✅ TRUE CENTER (doesn't move due to ribbon/padding)
+  absoluteCenter: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cardText: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+
+  /* Ribbon */
   ribbonWrap: {
     width: 60,
     height: 47,
   },
 
-  /* ✅ Number centered perfectly */
   ribbonNumberCenter: {
     position: "absolute",
     left: 0,
@@ -130,16 +196,46 @@ const styles = StyleSheet.create({
   },
 
   ribbonNumber: {
-    fontSize: 16, // ✅ medium
+    fontSize: 16,
     fontWeight: "900",
     color: "#FFFFFF",
     letterSpacing: 0.5,
     marginLeft: -9,
   },
 
-  cardText: {
+  /* fallback screens */
+  center: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+  },
+
+  centerTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#0F172A",
+  },
+
+  centerDesc: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748B",
+    textAlign: "center",
+  },
+
+  backBtn: {
+    marginTop: 14,
+    backgroundColor: "#214294",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  backBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 12,
   },
 });

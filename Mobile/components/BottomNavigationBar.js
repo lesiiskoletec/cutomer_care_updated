@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "../context/UserContext";
 
 const LMS_SIZE = 90;
 const BAR_RADIUS = 24;
@@ -9,31 +10,59 @@ const BAR_HEIGHT = 64;
 
 export default function BottomNavigationBar() {
   const navigation = useNavigation();
+  const { user } = useUser();
+
+  const showLMS = user?.level !== "al"; // ✅ hide LMS for AL
 
   return (
     <View style={styles.root}>
       {/* Bottom Bar */}
       <View style={styles.shadowContainer}>
-        <View style={styles.bar}>
-          <NavItem iconName="home-outline" label="Home" onPress={() => navigation.navigate("Home")} />
-          <NavItem iconName="radio-outline" label="Live" onPress={() => navigation.navigate("Live")} />
+        <View style={[styles.bar, !showLMS && styles.barNoLms]}>
+          <NavItem
+            iconName="home-outline"
+            label="Home"
+            onPress={() => navigation.navigate("Home")}
+          />
 
-          <View style={styles.slotCenter} />
+          <NavItem
+            iconName="radio-outline"
+            label="Live"
+            onPress={() => navigation.navigate("Live")}
+          />
 
-          <NavItem iconName="stats-chart-outline" label="Result" onPress={() => navigation.navigate("Result")} />
-          <NavItem iconName="person-outline" label="Profile" onPress={() => navigation.navigate("Profile")} />
+          {/* ✅ only keep empty space if LMS exists */}
+          {showLMS ? <View style={styles.slotCenter} /> : null}
+
+          <NavItem
+            iconName="stats-chart-outline"
+            label="Result"
+            onPress={() => navigation.navigate("Result")}
+          />
+
+          {/* ✅ NEW: Enroll tab (instead of Profile) */}
+          <NavItem
+            iconName="clipboard-outline" // ✅ suitable icon for enroll/subjects
+            label="Enroll"
+            onPress={() => navigation.navigate("EnrollSubjects")}
+          />
         </View>
       </View>
 
-      {/* Floating LMS Button */}
-      <Pressable
-        onPress={() => navigation.navigate("LMS")}
-        style={({ pressed }) => [styles.centerButton, pressed && styles.centerPressed]}
-        android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: true }}
-      >
-        <Ionicons name="school-outline" size={34} color="#0a1badff" />
-        <Text style={styles.centerLabel}>LMS</Text>
-      </Pressable>
+      {/* ✅ Floating LMS Button only for Primary / OL */}
+      {showLMS && (
+        <Pressable
+          onPress={() => navigation.navigate("LMS")}
+          style={({ pressed }) => [
+            styles.centerButton,
+            pressed && styles.centerPressed,
+          ]}
+          android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: true }}
+        >
+          <Ionicons name="school-outline" size={34} color="#0a1badff" />
+          <Text style={styles.centerLabel}>LMS</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -48,7 +77,6 @@ function NavItem({ iconName, label, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  // ✅ absolute overlay – NO background, NO padding color
   root: {
     position: "absolute",
     left: 16,
@@ -74,6 +102,10 @@ const styles = StyleSheet.create({
     borderRadius: BAR_RADIUS,
     flexDirection: "row",
     alignItems: "center",
+  },
+
+  barNoLms: {
+    paddingHorizontal: 6,
   },
 
   item: {

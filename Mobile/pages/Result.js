@@ -40,22 +40,22 @@ export default function Result() {
                 {/* Left */}
                 <View style={styles.leftCol}>
                   <View style={styles.row}>
-                    <Text style={styles.label}>Grade</Text>
+                    <Text style={styles.label}>Grade : </Text>
                     <Text style={styles.value}> {r.grade}</Text>
                   </View>
 
                   <View style={styles.row}>
-                    <Text style={styles.label}>Total</Text>
+                    <Text style={styles.label}>Total : </Text>
                     <Text style={styles.value}> {r.total}</Text>
                   </View>
 
                   <View style={styles.row}>
-                    <Text style={styles.label}>Correct</Text>
+                    <Text style={styles.label}>Correct : </Text>
                     <Text style={styles.value}> {r.correct}</Text>
                   </View>
 
                   <View style={styles.row}>
-                    <Text style={styles.label}>Percentage</Text>
+                    <Text style={styles.label}>Percentage : </Text>
                     <Text style={styles.value}> {r.percent}%</Text>
                   </View>
                 </View>

@@ -1,17 +1,26 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Dimensions, Image, Animated, Easing, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Image,
+  Animated,
+  Easing,
+  Pressable,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 import lesiiskole_logo from "../assets/lesiiskole_logo.png";
 
 const { width } = Dimensions.get("window");
 
-export default function TopBar({ onPressNotification }) {
+export default function TopBar() {
+  const navigation = useNavigation();
   const t = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Run every 10s: (animate 900ms) + (wait ~9100ms)
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(t, {
@@ -33,11 +42,15 @@ export default function TopBar({ onPressNotification }) {
     return () => loop.stop();
   }, [t]);
 
-  // Move stripe across the logo strongly so you can see it
   const translateX = t.interpolate({
     inputRange: [0, 1],
     outputRange: [-180, 180],
   });
+
+  const goProfile = () => navigation.navigate("Profile");
+
+  // ✅ Logout -> go Sign page (replace so user can't go back)
+  const goLogout = () => navigation.replace("Sign");
 
   return (
     <View style={styles.topBar}>
@@ -45,14 +58,11 @@ export default function TopBar({ onPressNotification }) {
       <View style={styles.logoWrap}>
         <Image source={lesiiskole_logo} style={styles.logo} resizeMode="contain" />
 
-        {/* Glare stripe overlay */}
         <Animated.View
           pointerEvents="none"
           style={[
             styles.glareWrap,
-            {
-              transform: [{ translateX }, { rotate: "-25deg" }],
-            },
+            { transform: [{ translateX }, { rotate: "-25deg" }] },
           ]}
         >
           <LinearGradient
@@ -69,10 +79,22 @@ export default function TopBar({ onPressNotification }) {
         </Animated.View>
       </View>
 
-      {/* Notification (NO animation) */}
-      <Pressable onPress={onPressNotification} hitSlop={10} style={styles.iconBtn}>
-        <Ionicons name="notifications-outline" size={26} color="#000" />
-      </Pressable>
+      {/* ✅ Right side buttons */}
+      <View style={styles.rightActions}>
+        {/* Profile */}
+        <Pressable onPress={goProfile} hitSlop={10} style={styles.iconBtn}>
+          <Ionicons name="person-circle-outline" size={30} color="#1153ec" />
+        </Pressable>
+
+        {/* Logout */}
+        <Pressable onPress={goLogout} hitSlop={10} style={styles.logoutBtn}>
+          <Ionicons name="log-out-outline" size={22} color="#1153ec" />
+          <View style={{ width: 6 }} />
+          <View>
+            {/* small text style like button */}
+          </View>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -86,8 +108,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-
-  
   },
 
   logoWrap: {
@@ -103,14 +123,13 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 
-  // container for moving stripe
   glareWrap: {
     position: "absolute",
     top: -40,
     left: 0,
     width: 90,
     height: 140,
-    opacity: 0.55, // make it visible
+    opacity: 0.55,
   },
 
   glare: {
@@ -119,8 +138,23 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
 
+  rightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
   iconBtn: {
     padding: 6,
     borderRadius: 999,
+  },
+
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "#EEF2FF",
   },
 });

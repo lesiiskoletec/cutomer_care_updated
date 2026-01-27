@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
 
 import profile from "../assets/profile.png";
 import ReviewComponent from "../components/ReviewComponent";
@@ -17,6 +18,12 @@ import ReviewComponent from "../components/ReviewComponent";
 const TAB_BAR_HEIGHT = 90;
 
 export default function Profile({ route }) {
+  const [fontsLoaded] = useFonts({
+    FMEmanee: require("../assets/fonts/FMEmanee x.ttf"),
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right"]}>
       <KeyboardAvoidingView
@@ -73,7 +80,12 @@ export default function Profile({ route }) {
               </View>
             </View>
 
-            {/* ✅ ReviewComponent card */}
+            <Text style={styles.sinhalaText}>
+  {"f,ais biafld,af,a cx.u fhojqu ms<sno woyia"}
+</Text>
+
+
+            {/* ✅ ReviewComponent */}
             <ReviewComponent route={route} />
           </View>
         </ScrollView>
@@ -105,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#D9D9D9",
     justifyContent: "center",
     alignItems: "center",
-   marginBottom: 5,
+    marginBottom: 5,
   },
 
   avatar: {
@@ -142,5 +154,17 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 14,
     color: "#0F172A",
+  },
+
+  /* ✅ Sinhala FMEmanee text */
+  sinhalaText: {
+    fontFamily: "FMEmanee",
+    fontSize: 16,
+    color: "#0F172A",
+    marginTop: 20,
+    marginBottom: -8,
+    textAlign: "center",
+    width: "90%",
+    lineHeight: 22,
   },
 });

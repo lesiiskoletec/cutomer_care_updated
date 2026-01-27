@@ -39,17 +39,17 @@ export default function ReviewComponent({ route }) {
   const reviews =
     route?.params?.reviews ?? [
       {
-        youtubeUrl: route?.params?.youtubeUrl ?? "https://youtu.be/30cffBrABao",
+        youtubeUrl: route?.params?.youtubeUrl ?? "https://youtu.be/yj0XRIJRuDY",
         description:
           route?.params?.description ??
           `f,ais biafldaf,a  hkq orejkaf.a wOHdmkh myiq" kùk iy úYajdiodhl f,i f.khkak ks¾udKh l<  wOHdmk fhÿuls'`,
       },
       {
-        youtubeUrl: "https://youtu.be/30cffBrABao",
+        youtubeUrl: "https://youtu.be/8k7b7_-FiWU",
         description: `fuu fhÿu YsIHhkag iy foudmshkag tlu fõÈldjla ;=<ska Wiia .=Kd;aul wOHdmk w;aoelSula ,nd§u wruqKq lr.ksñka ixj¾Okh lr we;'`,
       },
       {
-        youtubeUrl: "https://youtu.be/30cffBrABao",
+        youtubeUrl: "https://youtu.be/ETQA_J5Ebzw",
         description: `wjia:dj ,ndfohs' fuu fhÿu foudmshkag ;u orejdf.a wOHdmk .uk úYajdifhka iy wdrlaIs;j ksÍlaIKh lsÍug WmldÍ jk w;r"`,
       },
     ];
@@ -134,8 +134,8 @@ export default function ReviewComponent({ route }) {
 const styles = StyleSheet.create({
   wrapper: {
     width: "100%",
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: 10,
+    marginBottom: 10,
   },
 
   card: {

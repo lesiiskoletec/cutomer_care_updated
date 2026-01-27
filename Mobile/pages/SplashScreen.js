@@ -26,7 +26,7 @@ export default function SplashScreen({ navigation }) {
     if (!fontsLoaded) return;
 
     const timer = setTimeout(() => {
-      navigation.replace("MainSelectgrade"); // ✅ no back to Splash
+      navigation.replace("Sign"); // ✅ go to Sign screen
     }, 5000);
 
     return () => clearTimeout(timer);

@@ -1,131 +1,193 @@
 import bcrypt from "bcryptjs";
-import User from "../infastructure/schemas/User.js";
+import User, { SL_PHONE_REGEX } from "../infastructure/schemas/user.js";
 
-// ✅ Create new user
+const normalizeSLPhone = (phone) => {
+  const p = String(phone).trim();
+  if (p.startsWith("+94")) return p;
+  if (p.startsWith("94")) return `+${p}`;
+  if (p.startsWith("0")) return `+94${p.slice(1)}`;
+  return p;
+};
+
+const safeUser = (u) => ({
+  _id: u._id,
+  name: u.name,
+  email: u.email,
+  phonenumber: u.phonenumber,
+  district: u.district,
+  town: u.town,
+  address: u.address,
+  role: u.role,
+  isVerified: u.isVerified,
+  verifiedAt: u.verifiedAt,
+  isApproved: u.isApproved,
+  approvedAt: u.approvedAt,
+  approvedBy: u.approvedBy,
+  createdAt: u.createdAt,
+  updatedAt: u.updatedAt,
+});
+
 export const createUser = async (req, res) => {
   try {
-    const { name, gender, phonenumber, password, role } = req.body;
+    const { name, email, whatsappnumber, district, town, address, password, role } = req.body;
 
-    if (!name || !gender || !phonenumber || !password) {
+    if (!name || !email || !whatsappnumber || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const userRole = role === "admin" ? "admin" : "agent";
+    if (!["admin", "teacher", "student"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role. Must be admin, teacher, or student." });
+    }
+
+    if (role === "student" && (!district || !town || !address)) {
+      return res.status(400).json({ message: "Student must provide district, town, address" });
+    }
+
+    if (!SL_PHONE_REGEX.test(String(whatsappnumber).trim())) {
+      return res.status(400).json({
+        message: "Invalid Sri Lankan phone number. Use 0XXXXXXXXX or +94XXXXXXXXX",
+      });
+    }
+
+    const normalizedPhone = normalizeSLPhone(whatsappnumber);
+
+    const existsEmail = await User.findOne({ email: String(email).toLowerCase().trim() });
+    if (existsEmail) return res.status(409).json({ message: "Email already in use" });
+
+    const existsPhone = await User.findOne({ phonenumber: normalizedPhone });
+    if (existsPhone) return res.status(409).json({ message: "WhatsApp number already in use" });
+
     const hashed = await bcrypt.hash(String(password), 10);
 
     const user = await User.create({
       name,
-      gender,
-      phonenumber,
+      email: String(email).toLowerCase().trim(),
+      phonenumber: normalizedPhone,
+      district: role === "student" ? district : "",
+      town: role === "student" ? town : "",
+      address: role === "student" ? address : "",
       password: hashed,
-      role: userRole,
+      role,
+
+      // ✅ admin-created users can be marked verified if YOU want.
+      // For safety: keep false (user must verify OTP) OR set true for internal staff accounts.
+      isVerified: false,
+      verifiedAt: null,
+
+      isApproved: role === "teacher" ? false : true,
     });
 
-    return res.status(201).json({
-      message: "User created successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        gender: user.gender,
-        phonenumber: user.phonenumber,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    });
+    return res.status(201).json({ message: "User created", user: safeUser(user) });
   } catch (err) {
-    if (err.code === 11000 && err.keyPattern?.phonenumber) {
-      return res.status(409).json({ message: "Phone number already in use" });
-    }
     console.error("createUser error:", err);
+    if (err.code === 11000) return res.status(409).json({ message: "Duplicate email or phone" });
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// ✅ Get all users
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
-    return res.status(200).json({ users });
+    return res.status(200).json({ users: users.map(safeUser) });
   } catch (err) {
     console.error("getAllUsers error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// ✅ Get all AGENTS only
-export const getAllAgents = async (req, res) => {
-  try {
-    const agents = await User.find({ role: "agent" }).sort({ createdAt: -1 });
-    return res.status(200).json({ agents });
-  } catch (err) {
-    console.error("getAllAgents error:", err);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// ✅ Get user by ID
 export const getUserById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    return res.status(200).json({ user });
+    return res.status(200).json({ user: safeUser(user) });
   } catch (err) {
     console.error("getUserById error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// ✅ Update user
 export const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, gender, phonenumber, password, role } = req.body;
-
+    const { name, email, whatsappnumber, district, town, address, password, role } = req.body;
     const updateData = {};
-    if (name) updateData.name = name;
-    if (gender) updateData.gender = gender;
-    if (phonenumber) updateData.phonenumber = phonenumber;
-    if (role && ["agent", "admin"].includes(role)) updateData.role = role;
 
-    if (password) {
-      updateData.password = await bcrypt.hash(String(password), 10);
+    if (name) updateData.name = name;
+    if (email) updateData.email = String(email).toLowerCase().trim();
+
+    if (role) {
+      if (!["admin", "teacher", "student"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role. Must be admin, teacher, or student." });
+      }
+      updateData.role = role;
+
+      // ✅ if admin changes role away from teacher, mark approved true
+      if (role !== "teacher") {
+        updateData.isApproved = true;
+        updateData.approvedAt = null;
+        updateData.approvedBy = null;
+      }
     }
 
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+    if (whatsappnumber) {
+      if (!SL_PHONE_REGEX.test(String(whatsappnumber).trim())) {
+        return res.status(400).json({
+          message: "Invalid Sri Lankan phone number. Use 0XXXXXXXXX or +94XXXXXXXXX",
+        });
+      }
+      updateData.phonenumber = normalizeSLPhone(whatsappnumber);
+
+      // ✅ phone changed => must verify again
+      updateData.isVerified = false;
+      updateData.verifiedAt = null;
+    }
+
+    if (district !== undefined) updateData.district = district;
+    if (town !== undefined) updateData.town = town;
+    if (address !== undefined) updateData.address = address;
+
+    if (password) updateData.password = await bcrypt.hash(String(password), 10);
+
+    const updated = await User.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
 
-    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+    if (!updated) return res.status(404).json({ message: "User not found" });
 
-    return res.status(200).json({
-      message: "User updated successfully",
-      user: updatedUser,
-    });
+    return res.status(200).json({ message: "User updated", user: safeUser(updated) });
   } catch (err) {
-    if (err.code === 11000 && err.keyPattern?.phonenumber) {
-      return res.status(409).json({ message: "Phone number already in use" });
-    }
     console.error("updateUser error:", err);
+    if (err.code === 11000) return res.status(409).json({ message: "Duplicate email or phone" });
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// ✅ Delete user
-export const deleteUser = async (req, res) => {
+export const deleteUserById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) return res.status(404).json({ message: "User not found" });
-
-    return res.status(200).json({
-      message: "User deleted successfully",
-      user: deletedUser,
-    });
+    const deleted = await User.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "User not found" });
+    return res.status(200).json({ message: "User deleted", user: safeUser(deleted) });
   } catch (err) {
-    console.error("deleteUser error:", err);
+    console.error("deleteUserById error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const approveTeacher = async (req, res) => {
+  try {
+    const teacher = await User.findById(req.params.id);
+    if (!teacher) return res.status(404).json({ message: "User not found" });
+    if (teacher.role !== "teacher") return res.status(400).json({ message: "This user is not a teacher" });
+
+    teacher.isApproved = true;
+    teacher.approvedAt = new Date();
+    teacher.approvedBy = req.user.id;
+
+    await teacher.save();
+
+    return res.status(200).json({ message: "Teacher approved successfully", user: safeUser(teacher) });
+  } catch (err) {
+    console.error("approveTeacher error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
