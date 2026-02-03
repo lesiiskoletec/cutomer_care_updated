@@ -1,7 +1,7 @@
+// src/pages/lms.page.jsx
 import React, { useMemo } from "react";
 
 const LMSPage = () => {
-  // sample data (replace with API later)
   const rows = useMemo(
     () => [
       {
@@ -31,19 +31,16 @@ const LMSPage = () => {
   return (
     <div className="w-full flex justify-center">
       <div className="w-full max-w-[95vw] px-3 sm:px-6 py-4 sm:py-6 min-w-0">
-        {/* TITLE */}
         <h1 className="text-2xl sm:text-3xl font-extrabold text-blue-800 text-center">
           LMS
         </h1>
 
-        {/* ADD BUTTON */}
         <div className="mt-4 flex justify-end">
           <button className="rounded-xl bg-green-600 px-4 py-2 text-white font-extrabold hover:bg-green-700 transition">
             + Add LMS
           </button>
         </div>
 
-        {/* TABLE */}
         <div className="mt-4 w-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full table-fixed">
             <thead>

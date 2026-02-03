@@ -1,6 +1,10 @@
+// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import { store } from "./api/store";
 import "./index.css";
 
 import SignUpPage from "./pages/signup.page";
@@ -16,41 +20,124 @@ import ViewPaperPage from "./pages/ViewPaperPage";
 import TeacherLayout from "./layout/TeacherLayout";
 import TeacherPage from "./pages/Teacher.page";
 import ViewTeacherPage from "./pages/ViewTeacher.page";
+import PermissonTeachers from "./pages/PermissionTeachers";
 
 import StudentsPage from "./pages/Students.page";
-import LMSPage from "./pages/lms.page";
 import GradeSubjectPage from "./pages/Grade.Subject.page";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+
+import LMSLayout from "./layout/LMSLayout";
+import ClassPage from "./pages/class.page";
+import LMSPage from "./pages/lms.page";
+
+import AdminRoute from "./compoments/AdminRoute";
+import ProtectedRoute from "./compoments/ProtectedRoute";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SignUpPage />} />
-        <Route path="/otp" element={<OTPPage />} />
-        <Route path="/signin" element={<SignInPage />} />
-        <Route path="/forgotpassword" element={<ForgotPassword />} />
+    <Provider store={store}>
+      <BrowserRouter>
+        <Routes>
+          {/* auth */}
+          <Route path="/" element={<SignUpPage />} />
+          <Route path="/otp" element={<OTPPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/forgotpassword" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/lms" element={<LMSPage />} />
-        <Route path="/grade-subject" element={<GradeSubjectPage />} />
+          {/* home */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* STUDENT */}
-        <Route path="/student" element={<StudentsPage />} />
+          {/* grade-subject */}
+          <Route
+            path="/grade-subject"
+            element={
+              <ProtectedRoute>
+                <GradeSubjectPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* PAPER FLOW */}
-        <Route path="/paper" element={<PaperLayout />}>
-          <Route index element={<Navigate to="/paper/papers" replace />} />
-          <Route path="papers" element={<PapersPage />} />
-          <Route path="view" element={<ViewPaperPage />} />
-        </Route>
+          {/* student */}
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute>
+                <StudentsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* TEACHER FLOW */}
-        <Route path="/teacher" element={<TeacherLayout />}>
-          <Route index element={<Navigate to="/teacher/list" replace />} />
-          <Route path="list" element={<TeacherPage />} />
-          <Route path="view" element={<ViewTeacherPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          {/* paper */}
+          <Route
+            path="/paper"
+            element={
+              <ProtectedRoute>
+                <PaperLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/paper/papers" replace />} />
+            <Route path="papers" element={<PapersPage />} />
+            <Route path="view" element={<ViewPaperPage />} />
+          </Route>
+
+          {/* teacher */}
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute>
+                <TeacherLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/teacher/list" replace />} />
+            <Route path="list" element={<TeacherPage />} />
+            <Route path="view" element={<ViewTeacherPage />} />
+            <Route
+              path="permission"
+              element={
+                <AdminRoute>
+                  <PermissonTeachers />
+                </AdminRoute>
+              }
+            />
+          </Route>
+
+          {/* LMS */}
+          <Route
+            path="/lms"
+            element={
+              <ProtectedRoute>
+                <LMSLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/lms/list" replace />} />
+            <Route path="list" element={<LMSPage />} />
+
+            {/* ✅ Admin-only Class (NO /create route needed) */}
+            <Route
+              path="class"
+              element={
+                <AdminRoute>
+                  <ClassPage />
+                </AdminRoute>
+              }
+            />
+          </Route>
+
+          {/* fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </Provider>
   </React.StrictMode>
 );

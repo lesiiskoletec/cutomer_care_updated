@@ -8,13 +8,10 @@ function App() {
   return (
     <>
       <Routes>
-          <Route element={<RootLayout />}>
-            <Route path="/home" element={<HomePage />} />
-
-          </Route>
         </Routes>
     </>
   )
 }
+
 
 export default App

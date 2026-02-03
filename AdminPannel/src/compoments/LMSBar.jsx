@@ -1,12 +1,13 @@
+// src/compoments/LMSBar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { FaChalkboardTeacher, FaEye } from "react-icons/fa";
+import { FaChalkboardTeacher, FaEye, FaUsers } from "react-icons/fa";
 
-const TeacherBar = () => {
+const LMSBar = () => {
   const menuItemsTop = [
-    { icon: FaChalkboardTeacher, label: "Teachers", path: "/teacher/list" },
-    { icon: FaEye, label: "View Teacher", path: "/teacher/view" },
-    { icon: FaEye, label: "Permission", path: "/teacher/permission" },
+    { icon: FaEye, label: "LMS", path: "/lms/list" },
+    { icon: FaUsers, label: "Class", path: "/lms/class" },
+
   ];
 
   return (
@@ -40,4 +41,4 @@ const TeacherBar = () => {
   );
 };
 
-export default TeacherBar;
+export default LMSBar;
